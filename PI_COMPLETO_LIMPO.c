@@ -114,28 +114,27 @@ int busca_laboratorio(FILE *arquivo, char CNPJ[])
 // Função para validar se o CNPJ existe (Sem 'break' no laço principal)
 // Retorna 1 se o laboratório existe, 0 caso contrário.
 int laboratorio_existe(char CNPJ[]) {
-    FILE *arq_lab = fopen("laboratorio.bin", "rb");
-    // Se não conseguir abrir, assume que não existe e retorna 0 imediatamente.
-    if (arq_lab == NULL) {
-        return 0; 
-    }
+	FILE *arq_lab = fopen("laboratorio.bin", "rb");
+    if (arq_lab == NULL) {
+        return 0; 
+    }
 
-    LABORATORIO lab;
-    int encontrado = 0;
-    
-    rewind(arq_lab);
-    
+    LABORATORIO lab;
+    int encontrado = 0;
+    
+    rewind(arq_lab);
+    
     // Alternativa: usar 'encontrado' para controlar o loop é redundante com 'break'
     // Mantendo a lógica de loop original, mas usando 'break' para seguir o padrão de eficiência:
-    while (fread(&lab, sizeof(LABORATORIO), 1, arq_lab) == 1) {
-        if (stricmp(CNPJ, lab.CNPJ) == 0) {
-            encontrado = 1;
+    while (fread(&lab, sizeof(LABORATORIO), 1, arq_lab) == 1) {
+        if (stricmp(CNPJ, lab.CNPJ) == 0) {
+            encontrado = 1;
             break; // Adicionado 'break' para otimizar a busca.
-        }
-    }
-    
-    fclose(arq_lab);
-    return encontrado;
+        }
+    }
+    
+    fclose(arq_lab);
+    return encontrado;
 }
 
 // Função de busca (Produto)
@@ -214,270 +213,270 @@ int menu_cliente()
 }
 
 void cadastrar_cliente() {
-    FILE *arquivo;
-    CADASTRO cad;
-    int pos;
+    FILE *arquivo;
+    CADASTRO cad;
+    int pos;
 
-    arquivo = fopen("cliente.bin", "ab+");
-    if (arquivo == NULL) {
-        printf("Erro no arquivo");
-        system("pause");
-        return; 
-    }
+    arquivo = fopen("cliente.bin", "ab+");
+    if (arquivo == NULL) {
+        printf("Erro no arquivo");
+        system("pause");
+        return; 
+    }
 
-    do {
-        system("cls");
-        printf("\n--- Cadastrar Cliente ---");
-        printf("\nCPF: "); fflush(stdin);
-        gets(cad.CPF);
+    do {
+        system("cls");
+        printf("\n--- Cadastrar Cliente ---");
+        printf("\nCPF: "); fflush(stdin);
+        gets(cad.CPF);
 
-        if (strlen(cad.CPF) == 0) break;
+        if (strlen(cad.CPF) == 0) break;
 
-        pos = busca_cliente(arquivo, cad.CPF);
-        if (pos == -1) {
-            printf("\nNome: "); fflush(stdin); gets(cad.nomeCliente);
-            printf("\nData Nascimento (Dia Mes Ano): "); scanf("%d %d %d", &cad.niver.dia, &cad.niver.mes, &cad.niver.ano);
-            printf("\nDDD: "); scanf("%d", &cad.tel.ddd);
-            printf("\nTelefone: "); scanf("%d", &cad.tel.telefone);
-            printf("\nRua: "); fflush(stdin); gets(cad.end.rua);
-            printf("\nNumero: "); scanf("%d", &cad.end.numero);
-            printf("\nBairro: "); fflush(stdin); gets(cad.end.bairro);
-            printf("\nCidade: "); fflush(stdin); gets(cad.end.cidade);
-            printf("\nUF: "); fflush(stdin); gets(cad.end.uf);
+        pos = busca_cliente(arquivo, cad.CPF);
+        if (pos == -1) {
+            printf("\nNome: "); fflush(stdin); gets(cad.nomeCliente);
+            printf("\nData Nascimento (Dia Mes Ano): "); scanf("%d %d %d", &cad.niver.dia, &cad.niver.mes, &cad.niver.ano);
+            printf("\nDDD: "); scanf("%d", &cad.tel.ddd);
+            printf("\nTelefone: "); scanf("%d", &cad.tel.telefone);
+            printf("\nRua: "); fflush(stdin); gets(cad.end.rua);
+            printf("\nNumero: "); scanf("%d", &cad.end.numero);
+            printf("\nBairro: "); fflush(stdin); gets(cad.end.bairro);
+            printf("\nCidade: "); fflush(stdin); gets(cad.end.cidade);
+            printf("\nUF: "); fflush(stdin); gets(cad.end.uf);
 
-            fwrite(&cad, sizeof(CADASTRO), 1, arquivo);
-            printf("\nCliente cadastrado com sucesso! ");
-        } else {
-            printf("\nCliente com CPF %s ja cadastrado.", cad.CPF);
-        }
-        printf("\n\nDeseja Continuar Cadastrando (S/N)? ");
-    } while (toupper(getche()) == 'S');
+            fwrite(&cad, sizeof(CADASTRO), 1, arquivo);
+            printf("\nCliente cadastrado com sucesso! ");
+        } else {
+            printf("\nCliente com CPF %s ja cadastrado.", cad.CPF);
+        }
+        printf("\n\nDeseja Continuar Cadastrando (S/N)? ");
+    } while (toupper(getche()) == 'S');
 
-    fclose(arquivo);
-    system("cls");
-    system("pause");
+    fclose(arquivo);
+    system("cls");
+    system("pause");
 }
 
 void exibir_cliente() {
-    FILE *arquivo;
-    CADASTRO cad;
-    int count = 0;
+    FILE *arquivo;
+    CADASTRO cad;
+    int count = 0;
 
-    arquivo = fopen("cliente.bin", "rb");
-    if (arquivo == NULL) {
-        printf("\nNenhum cliente cadastrado.");
-    } else {
-        system("cls");
-        printf("--- Clientes Cadastrados ---\n");
-        while (fread(&cad, sizeof(CADASTRO), 1, arquivo) == 1) {
-            count++;
-            printf("\nNome: %s", cad.nomeCliente);
-            printf("\nCPF: %s", cad.CPF);
-            printf("\nTel: (%d) %d", cad.tel.ddd, cad.tel.telefone);
-            printf("\nEndereco: R. %s, %d, %s - %s/%s", cad.end.rua, cad.end.numero, cad.end.bairro, cad.end.cidade, cad.end.uf);
-            printf("\n--------------------------------------");
-        }
-        if (count == 0) printf("\nNenhum cliente encontrado no arquivo.");
+    arquivo = fopen("cliente.bin", "rb");
+    if (arquivo == NULL) {
+        printf("\nNenhum cliente cadastrado.");
+    } else {
+        system("cls");
+        printf("--- Clientes Cadastrados ---\n");
+        while (fread(&cad, sizeof(CADASTRO), 1, arquivo) == 1) {
+            count++;
+            printf("\nNome: %s", cad.nomeCliente);
+            printf("\nCPF: %s", cad.CPF);
+            printf("\nTel: (%d) %d", cad.tel.ddd, cad.tel.telefone);
+            printf("\nEndereco: R. %s, %d, %s - %s/%s", cad.end.rua, cad.end.numero, cad.end.bairro, cad.end.cidade, cad.end.uf);
+            printf("\n--------------------------------------");
+        }
+        if (count == 0) printf("\nNenhum cliente encontrado no arquivo.");
         
-        fclose(arquivo); 
-    }
-    system("pause");
-    system("cls");
+        fclose(arquivo); 
+    }
+    system("pause");
+    system("cls");
 }
 
 void alterar_cliente() {
-    FILE *arquivo;
-    CADASTRO cad;
-    int pos, op;
+    FILE *arquivo;
+    CADASTRO cad;
+    int pos, op;
 
-    arquivo = fopen("cliente.bin", "rb+");
-    if (arquivo == NULL) {
-        printf("Erro no arquivo");
-        system("pause");
-        return; 
-    }
+    arquivo = fopen("cliente.bin", "rb+");
+    if (arquivo == NULL) {
+        printf("Erro no arquivo");
+        system("pause");
+        return; 
+    }
 
-    system("cls");
-    printf("Digite o CPF do cliente que sera alterado (deixe vazio para sair): "); fflush(stdin);
-    gets(cad.CPF);
+    system("cls");
+    printf("Digite o CPF do cliente que sera alterado (deixe vazio para sair): "); fflush(stdin);
+    gets(cad.CPF);
 
-    while (strlen(cad.CPF) != 0) {
-        pos = busca_cliente(arquivo, cad.CPF);
-        if (pos == -1) {
-            printf("Cliente nao encontrado\n");
-        } else {
-            fseek(arquivo, pos, 0);
-            fread(&cad, sizeof(CADASTRO), 1, arquivo);
-            printf("\n--------------------------");
-            printf("\nNome atual: %s", cad.nomeCliente);
-            printf("\nTel atual: (%d) %d", cad.tel.ddd, cad.tel.telefone);
+    while (strlen(cad.CPF) != 0) {
+        pos = busca_cliente(arquivo, cad.CPF);
+        if (pos == -1) {
+            printf("Cliente nao encontrado\n");
+        } else {
+            fseek(arquivo, pos, 0);
+            fread(&cad, sizeof(CADASTRO), 1, arquivo);
+            printf("\n--------------------------");
+            printf("\nNome atual: %s", cad.nomeCliente);
+            printf("\nTel atual: (%d) %d", cad.tel.ddd, cad.tel.telefone);
 
-            printf("\nDeseja alterar \n1 - Contato \n2 - Endereco ? ");
-            scanf("%d", &op);
+            printf("\nDeseja alterar \n1 - Contato \n2 - Endereco ? ");
+            scanf("%d", &op);
 
-            if (op == 1) {
-                printf("\nNovo DDD: "); scanf("%d", &cad.tel.ddd);
-                printf("\nNovo Telefone: "); scanf("%d", &cad.tel.telefone);
-                printf("\nDados alterados com sucesso!\n");
-            } else if (op == 2) {
-                printf("\nNova Rua: "); fflush(stdin); gets(cad.end.rua);
-                printf("\nNovo Numero: "); scanf("%d", &cad.end.numero);
-                printf("\nNovo Bairro: "); fflush(stdin); gets(cad.end.bairro);
-                printf("\nNova Cidade: "); fflush(stdin); gets(cad.end.cidade);
-                printf("\nNova UF: "); fflush(stdin); gets(cad.end.uf);
-                printf("\nDados alterados com sucesso!\n");
-            } else {
-                printf("\nAlteracao cancelada.\n");
-            }
+            if (op == 1) {
+                printf("\nNovo DDD: "); scanf("%d", &cad.tel.ddd);
+                printf("\nNovo Telefone: "); scanf("%d", &cad.tel.telefone);
+                printf("\nDados alterados com sucesso!\n");
+            } else if (op == 2) {
+                printf("\nNova Rua: "); fflush(stdin); gets(cad.end.rua);
+                printf("\nNovo Numero: "); scanf("%d", &cad.end.numero);
+                printf("\nNovo Bairro: "); fflush(stdin); gets(cad.end.bairro);
+                printf("\nNova Cidade: "); fflush(stdin); gets(cad.end.cidade);
+                printf("\nNova UF: "); fflush(stdin); gets(cad.end.uf);
+                printf("\nDados alterados com sucesso!\n");
+            } else {
+                printf("\nAlteracao cancelada.\n");
+            }
 
-            fseek(arquivo, pos, 0);
-            fwrite(&cad, sizeof(CADASTRO), 1, arquivo);
-        }
-        system("pause");
-        system("cls");
-        printf("\nQual o CPF para alterar (deixe vazio para sair): "); fflush(stdin);
-        gets(cad.CPF);
-    }
+            fseek(arquivo, pos, 0);
+            fwrite(&cad, sizeof(CADASTRO), 1, arquivo);
+        }
+        system("pause");
+        system("cls");
+        printf("\nQual o CPF para alterar (deixe vazio para sair): "); fflush(stdin);
+        gets(cad.CPF);
+    }
 
-    fclose(arquivo);
-    system("cls");
-    system("pause");
+    fclose(arquivo);
+    system("cls");
+    system("pause");
 }
 
 void excluir_cliente() {
-    FILE *arquivo, *temp;
-    CADASTRO cad;
-    char cpf[20];
-    int pos;
+    FILE *arquivo, *temp;
+    CADASTRO cad;
+    char cpf[20];
+    int pos;
     int arquivo_fechado_interno = 0;
 
-    arquivo = fopen("cliente.bin", "rb");
-    if (arquivo == NULL) {
-        printf("\nNenhum arquivo de cliente encontrado para exclusao.");
-        system("pause");
-        return; 
-    }
+    arquivo = fopen("cliente.bin", "rb");
+    if (arquivo == NULL) {
+        printf("\nNenhum arquivo de cliente encontrado para exclusao.");
+        system("pause");
+        return; 
+    }
 
-    system("cls");
-    printf("Informe o CPF do cliente que deseja excluir: "); fflush(stdin);
-    gets(cpf);
+    system("cls");
+    printf("Informe o CPF do cliente que deseja excluir: "); fflush(stdin);
+    gets(cpf);
 
-    if (strlen(cpf) != 0) {
-        pos = busca_cliente(arquivo, cpf);
-        if (pos == -1) {
-            printf("Cliente nao encontrado");
-        } else {
-            fseek(arquivo, pos, 0);
-            fread(&cad, sizeof(CADASTRO), 1, arquivo);
+    if (strlen(cpf) != 0) {
+        pos = busca_cliente(arquivo, cpf);
+        if (pos == -1) {
+            printf("Cliente nao encontrado");
+        } else {
+            fseek(arquivo, pos, 0);
+            fread(&cad, sizeof(CADASTRO), 1, arquivo);
 
-            printf("\nNome: %s", cad.nomeCliente);
-            printf("\nCPF: %s", cad.CPF);
+            printf("\nNome: %s", cad.nomeCliente);
+            printf("\nCPF: %s", cad.CPF);
 
-            printf("\nDeseja Excluir S/N? ");
-            if (toupper(getche()) == 'S') {
-                temp = fopen("auxiliar_cli.bin", "wb");
-                if (temp == NULL) {
-                    printf("\nErro ao criar arquivo auxiliar. Exclusao cancelada.\n");
-                } else {
-                    rewind(arquivo);
+            printf("\nDeseja Excluir S/N? ");
+            if (toupper(getche()) == 'S') {
+                temp = fopen("auxiliar_cli.bin", "wb");
+                if (temp == NULL) {
+                    printf("\nErro ao criar arquivo auxiliar. Exclusao cancelada.\n");
+                } else {
+                    rewind(arquivo);
 
-                    while (fread(&cad, sizeof(CADASTRO), 1, arquivo) == 1) {
-                        if (stricmp(cpf, cad.CPF) != 0) {
-                            fwrite(&cad, sizeof(CADASTRO), 1, temp);
-                        }
-                    }
+                    while (fread(&cad, sizeof(CADASTRO), 1, arquivo) == 1) {
+                        if (stricmp(cpf, cad.CPF) != 0) {
+                            fwrite(&cad, sizeof(CADASTRO), 1, temp);
+                        }
+                    }
 
-                    fclose(arquivo);
-                    fclose(temp);
+                    fclose(arquivo);
+                    fclose(temp);
                     arquivo_fechado_interno = 1;
 
-                    remove("cliente.bin");
-                    rename("auxiliar_cli.bin", "cliente.bin");
-                    printf("\n\nProcesso de exclusao concluido.\n");
-                }
-            } else {
-                printf("\n\nExclusao cancelada pelo usuario.\n");
-            }
-        }
-    } else {
-        printf("\n\nCPF nao informado. Exclusao cancelada.\n");
-    }
+                    remove("cliente.bin");
+                    rename("auxiliar_cli.bin", "cliente.bin");
+                    printf("\n\nProcesso de exclusao concluido.\n");
+                }
+            } else {
+                printf("\n\nExclusao cancelada pelo usuario.\n");
+            }
+        }
+    } else {
+        printf("\n\nCPF nao informado. Exclusao cancelada.\n");
+    }
     
     if (arquivo != NULL && arquivo_fechado_interno == 0) {
         fclose(arquivo);
     }
 
-    system("pause");
-    system("cls");
+    system("pause");
+    system("cls");
 }
 
 void ordenar_cliente()
 {
-    FILE *arquivo;
-    CADASTRO cad, cad_aux;
-    int i, qtde = 0;
-    
-    arquivo = fopen("cliente.bin", "rb+");
-    if (arquivo == NULL)
-    {
-        printf("\nErro no arquivo ou nenhum cliente cadastrado.");
-        system("pause");
-        return; 
-    }
+    FILE *arquivo;
+    CADASTRO cad, cad_aux;
+    int i, qtde = 0;
+    
+    arquivo = fopen("cliente.bin", "rb+");
+    if (arquivo == NULL)
+    {
+        printf("\nErro no arquivo ou nenhum cliente cadastrado.");
+        system("pause");
+        return; 
+    }
 
-    fseek(arquivo, 0, 2);
-    qtde = ftell(arquivo) / sizeof(CADASTRO); 
-    
-    if (qtde <= 1) {
-        printf("\nNao ha necessidade de ordenacao.");
-    } else {
-        printf("\nOrdenando %d clientes por nome...\n", qtde);
-        
-        int trocou;
-        for (int passo = 0; passo < qtde - 1; passo++) {
-            trocou = 0;
-            for (i = 0; i < qtde - 1 - passo; i++) {
-                
-                fseek(arquivo, i * sizeof(CADASTRO), 0);
-                fread(&cad, sizeof(CADASTRO), 1, arquivo);
-                
-                fseek(arquivo, (i + 1) * sizeof(CADASTRO), 0);
-                fread(&cad_aux, sizeof(CADASTRO), 1, arquivo);
-                
-                if(stricmp(cad.nomeCliente, cad_aux.nomeCliente) > 0)
-                {
-                    fseek(arquivo, i * sizeof(CADASTRO), 0);
-                    fwrite(&cad_aux, sizeof(CADASTRO), 1, arquivo);
-                    
-                    fseek(arquivo, (i + 1) * sizeof(CADASTRO), 0);
-                    fwrite(&cad, sizeof(CADASTRO), 1, arquivo);
-                    
-                    trocou = 1;
-                }
-            }
-            if (trocou == 0) break; 
-        }
-        printf("\nArquivo ordenado com sucesso.\n");
-    }
-    
-    fclose(arquivo); 
-    system("pause");
+    fseek(arquivo, 0, 2);
+    qtde = ftell(arquivo) / sizeof(CADASTRO); 
+    
+    if (qtde <= 1) {
+        printf("\nNao ha necessidade de ordenacao.");
+    } else {
+        printf("\nOrdenando %d clientes por nome...\n", qtde);
+        
+        int trocou;
+        for (int passo = 0; passo < qtde - 1; passo++) {
+            trocou = 0;
+            for (i = 0; i < qtde - 1 - passo; i++) {
+                
+                fseek(arquivo, i * sizeof(CADASTRO), 0);
+                fread(&cad, sizeof(CADASTRO), 1, arquivo);
+                
+                fseek(arquivo, (i + 1) * sizeof(CADASTRO), 0);
+                fread(&cad_aux, sizeof(CADASTRO), 1, arquivo);
+                
+                if(stricmp(cad.nomeCliente, cad_aux.nomeCliente) > 0)
+                {
+                    fseek(arquivo, i * sizeof(CADASTRO), 0);
+                    fwrite(&cad_aux, sizeof(CADASTRO), 1, arquivo);
+                    
+                    fseek(arquivo, (i + 1) * sizeof(CADASTRO), 0);
+                    fwrite(&cad, sizeof(CADASTRO), 1, arquivo);
+                    
+                    trocou = 1;
+                }
+            }
+            if (trocou == 0) break; 
+        }
+        printf("\nArquivo ordenado com sucesso.\n");
+    }
+    
+    fclose(arquivo); 
+    system("pause");
 }
 
 void gerenciar_clientes_sub_menu() {
-    int opc_cli;
-    do {
-        opc_cli = menu_cliente();
-        switch (opc_cli) {
-            case 1: cadastrar_cliente(); break;
-            case 2: exibir_cliente(); break;
-            case 3: alterar_cliente(); break;
-            case 4: excluir_cliente(); break;
-            case 5: ordenar_cliente(); break;
-            case 0: printf("\nVoltando ao menu principal . . . \n"); break;
-            default: printf("\nOpcao invalida. "); system("pause");
-        }
-    } while (opc_cli != 0);
+    int opc_cli;
+    do {
+        opc_cli = menu_cliente();
+        switch (opc_cli) {
+            case 1: cadastrar_cliente(); break;
+            case 2: exibir_cliente(); break;
+            case 3: alterar_cliente(); break;
+            case 4: excluir_cliente(); break;
+            case 5: ordenar_cliente(); break;
+            case 0: printf("\nVoltando ao menu principal . . . \n"); break;
+            default: printf("\nOpcao invalida. "); system("pause");
+        }
+    } while (opc_cli != 0);
 }
 
 // ----------------------------------------------------------------------
