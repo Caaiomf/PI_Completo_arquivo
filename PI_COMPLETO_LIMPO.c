@@ -971,9 +971,8 @@ void exibir_produto()
 	{
 		system("cls");
         printf("--- Produtos Cadastrados ---\n");
-        while(!feof(arquivo) == 0)
+        while(fread(&prod, sizeof(PRODUTO), 1, arquivo)==1)
 		{
-			fread(&prod, sizeof(PRODUTO), 1, arquivo);
 			printf("\nCodigo: %s", prod.codigo);
 			printf("\nNome: %s", prod.nomeProduto);
 			printf("\nEstoque: %d", prod.quantidade);
@@ -1298,9 +1297,8 @@ void exibir_categoria()
         // Se o arquivo abriu, executa a l?gica de listagem
 		system("cls");
         printf("--- Categorias Cadastradas ---\n");
-        while(!feof(arquivo) == 0)
+        while(fread(&cat, sizeof(CATEGORIA), 1, arquivo)==1)
 		{
-			fread(&cat, sizeof(CATEGORIA), 1, arquivo);
             count++;
 			printf("\nID: %d", cat.idCategoria);
 			printf("\nNome: %s", cat.nomeCategoria);
@@ -1528,7 +1526,6 @@ int menu_promocao()
 	printf("\n3 - Alterar dados da promocao");
 	printf("\n4 - Deletar promocao");
 	printf("\n5 - Cadastrar promocao por produto proximo do vencimento");
-	printf("\n6- Cadastrar promocao por lote proximo do vencimento");
 	printf("\n0 - Voltar menu principal");
 	printf("\nSelecione a opcao: ");
 	scanf("%d", &opc);
@@ -1607,9 +1604,8 @@ void exibir_promocao()
 	{
 		system("cls");
         printf("--- Promocoes Cadastradas ---\n");
-        while(!feof(arquivo) == 0)
+        while(fread(&prm, sizeof(PROMOCAO), 1, arquivo)==1)
 		{
-			fread(&prm, sizeof(PROMOCAO), 1, arquivo);
             count++;
 			printf("\nID: %d", prm.idPromocao);
 			printf("\nNome: %s", prm.nomePromocao);
@@ -1768,6 +1764,66 @@ void excluir_promocao()
     system("pause");
     system("cls");
 }
+int gerar_promocoes_vencimento()
+{
+    FILE *arquivo;
+    PRODUTO prod;
+    int dias_limite;
+    float percentual_desconto;
+    NASCIMENTO data_hoje;
+    
+    system("cls");
+    printf("--- Gerar Promocao por Vencimento Proximo ---\n");
+    
+    printf("\nInforme a DATA DE HOJE (Dia Mes Ano): ");
+    scanf("%d %d %d", &data_hoje.dia, &data_hoje.mes, &data_hoje.ano);
+    
+    printf("Informe o NUMERO DE DIAS LIMITE: ");
+    scanf("%d", &dias_limite);
+    
+    printf("Informe o PERCENTUAL DE DESCONTO (Ex: 0.20 para 20%%): ");
+    scanf("%f", &percentual_desconto);
+    
+    NASCIMENTO data_limite = somar_dias_data(data_hoje, dias_limite);
+    long limite_int = data_to_long(data_limite);
+    
+    arquivo = fopen("produto.bin", "rb+");
+    if(arquivo == NULL) {
+        printf("\nErro ao abrir arquivo de produtos.");
+        system("pause");
+        return;
+    }
+    
+    int count = 0;
+    long pos_atual;
+    
+    printf("\n--- Produtos em Promocao ---\n");
+    
+    while(fread(&prod, sizeof(PRODUTO), 1, arquivo) == 1) {
+        long validade_int = data_to_long(prod.dataValidade);
+        
+        if(validade_int <= limite_int) {
+            pos_atual = ftell(arquivo) - sizeof(PRODUTO);
+            float preco_original = prod.precoVenda;
+            prod.precoVenda = prod.precoVenda * (1.0 - percentual_desconto);
+            
+            fseek(arquivo, pos_atual, SEEK_SET);
+            fwrite(&prod, sizeof(PRODUTO), 1, arquivo);
+            
+            count++;
+            printf("\nProduto: %s", prod.nomeProduto);
+            printf("\nPreco Original: R$ %.2f", preco_original);
+            printf("\nNovo Preco: R$ %.2f", prod.precoVenda);
+            printf("\nDesconto: %.0f%%", percentual_desconto * 100);
+            printf("\n--------------------------------------");
+            break;
+        }
+    }
+    
+    printf("\n\nTotal de produtos em promocao: %d\n", count);
+    fclose(arquivo);
+    system("pause");
+}
 
 	void gerar_promocao_por_lote()
 {
@@ -1835,7 +1891,7 @@ void excluir_promocao()
                 fwrite(&prod, sizeof(PRODUTO), 1, arquivo);
                 
                 count++;
-                printf("\nPROMOÇÃO APLICADA (%d):", count);
+                printf("\nPROMOCAO APLICADA (%d):", count);
                 printf("\nCodigo: %s - %s", prod.codigo, prod.nomeProduto);
                 printf("\nValidade: %02d/%02d/%d", prod.dataValidade.dia, prod.dataValidade.mes, prod.dataValidade.ano);
                 printf("\nPreco: R$ %.2f -> R$ %.2f", preco_original, prod.precoVenda);
@@ -1866,7 +1922,7 @@ void gerar_promocoes_sub_menu() {
 				break;
             case 5: gerar_promocoes_vencimento(); 
 				break;
-				  case 6: gerar_promocao_por_lote();
+			case 6: //gerar_promocao_por_lote();
 				  break;
             case 0: printf("\nVoltando ao menu principal . . . \n"); break;
             default: printf("\nOpcao invalida. "); system("pause");
@@ -2068,9 +2124,8 @@ void relatorio_produtos_vencimento()
         printf("\nLimite de Vencimento (Proximos %d dias): %02d/%02d/%d", dias_limite, data_limite.dia, data_limite.mes, data_limite.ano);
         printf("\n-----------------------------------------------------\n");
 		
-        while(!feof(arquivo) == 0)
+        while(fread(&prod, sizeof(PRODUTO), 1, arquivo)==1)
 		{
-			fread(&prod, sizeof(PRODUTO), 1, arquivo);
             long validade_int = data_to_long(prod.dataValidade);
             
             // O produto est? perto do vencimento ou j? venceu (validade <= limite futuro)
@@ -2289,67 +2344,6 @@ void efetuar_compra()
     system("pause");
 }
 
-
-
-int gerar_promocoes_vencimento()
-{
-    FILE *arquivo;
-    PRODUTO prod;
-    int dias_limite;
-    float percentual_desconto;
-    NASCIMENTO data_hoje;
-    
-    system("cls");
-    printf("--- Gerar Promocao por Vencimento Proximo ---\n");
-    
-    printf("\nInforme a DATA DE HOJE (Dia Mes Ano): ");
-    scanf("%d %d %d", &data_hoje.dia, &data_hoje.mes, &data_hoje.ano);
-    
-    printf("Informe o NUMERO DE DIAS LIMITE: ");
-    scanf("%d", &dias_limite);
-    
-    printf("Informe o PERCENTUAL DE DESCONTO (Ex: 0.20 para 20%%): ");
-    scanf("%f", &percentual_desconto);
-    
-    NASCIMENTO data_limite = somar_dias_data(data_hoje, dias_limite);
-    long limite_int = data_to_long(data_limite);
-    
-    arquivo = fopen("produto.bin", "rb+");
-    if(arquivo == NULL) {
-        printf("\nErro ao abrir arquivo de produtos.");
-        system("pause");
-        return;
-    }
-    
-    int count = 0;
-    long pos_atual;
-    
-    printf("\n--- Produtos em Promocao ---\n");
-    
-    while(fread(&prod, sizeof(PRODUTO), 1, arquivo) == 1) {
-        long validade_int = data_to_long(prod.dataValidade);
-        
-        if(validade_int <= limite_int) {
-            pos_atual = ftell(arquivo) - sizeof(PRODUTO);
-            float preco_original = prod.precoVenda;
-            prod.precoVenda = prod.precoVenda * (1.0 - percentual_desconto);
-            
-            fseek(arquivo, pos_atual, SEEK_SET);
-            fwrite(&prod, sizeof(PRODUTO), 1, arquivo);
-            
-            count++;
-            printf("\nProduto: %s", prod.nomeProduto);
-            printf("\nPreco Original: R$ %.2f", preco_original);
-            printf("\nNovo Preco: R$ %.2f", prod.precoVenda);
-            printf("\nDesconto: %.0f%%", percentual_desconto * 100);
-            printf("\n--------------------------------------");
-        }
-    }
-    
-    printf("\n\nTotal de produtos em promocao: %d\n", count);
-    fclose(arquivo);
-    system("pause");
-}
 
 
 
